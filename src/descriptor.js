@@ -1,10 +1,10 @@
-const protobuf = require('protobufjs');
-const Descriptor = require('protobufjs/ext/descriptor');
+const protobuf = require('@postman/protobufjs');
+const Descriptor = require('@postman/protobufjs/ext/descriptor');
 const set = require('lodash.set');
 
 /**
- * @typedef {import('protobufjs').Root} Root
- * @typedef {import('protobufjs').Message} Message
+ * @typedef {import('@postman/protobufjs').Root} Root
+ * @typedef {import('@postman/protobufjs').Message} Message
  */
 
 /**

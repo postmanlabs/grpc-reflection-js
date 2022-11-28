@@ -7,7 +7,7 @@ import {assert} from 'chai';
 import {
   FileDescriptorProto,
   FileDescriptorSet,
-} from 'protobufjs/ext/descriptor';
+} from '@postman/protobufjs/ext/descriptor';
 import set from 'lodash.set';
 
 // eslint-disable-next-line prettier/prettier

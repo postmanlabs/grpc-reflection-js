@@ -5,12 +5,12 @@ import {
   ServerReflectionRequest,
   ServerReflectionResponse,
 } from './reflection_pb';
-import {Root} from 'protobufjs';
+import {Root} from '@postman/protobufjs';
 import {
   FileDescriptorSet,
   IFileDescriptorProto,
   FileDescriptorProto,
-} from 'protobufjs/ext/descriptor';
+} from '@postman/protobufjs/ext/descriptor';
 import set from 'lodash.set';
 
 export class Client {

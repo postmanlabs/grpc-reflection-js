@@ -1,9 +1,7 @@
 {
-  "name": "grpc-reflection-js",
+  "name": "@postman/grpc-reflection-js",
   "version": "0.1.2",
   "main": "build/src/index.js",
-  "repository": "https://github.com/redhoyasa/grpc-reflection-js",
-  "author": "redhoyasa@gmail.com",
   "license": "MIT",
   "dependencies": {
     "@types/google-protobuf": "^3.7.2",

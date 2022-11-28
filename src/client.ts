@@ -1,4 +1,4 @@
-import {ChannelCredentials, ServiceError} from '@grpc/grpc-js';
+import {ChannelCredentials, Metadata, ServiceError} from '@grpc/grpc-js';
 import {getDescriptorRootFromDescriptorSet} from './descriptor';
 import * as services from './reflection_grpc_pb';
 import {
@@ -14,8 +14,15 @@ import {
 import set from 'lodash.set';
 
 export class Client {
+  metadata: Metadata;
   grpcClient: services.IServerReflectionClient;
-  constructor(url: string, credentials: ChannelCredentials, options?: object) {
+  constructor(
+    url: string,
+    credentials: ChannelCredentials,
+    options?: object,
+    metadata?: Metadata
+  ) {
+    this.metadata = metadata || new Metadata();
     this.grpcClient = new services.ServerReflectionClient(
       url,
       credentials,
@@ -46,7 +53,7 @@ export class Client {
       const request = new ServerReflectionRequest();
       request.setListServices('*');
 
-      const grpcCall = this.grpcClient.serverReflectionInfo({});
+      const grpcCall = this.grpcClient.serverReflectionInfo(this.metadata);
       grpcCall.on('data', dataCallback);
       grpcCall.on('error', errorCallback);
       grpcCall.write(request);
@@ -133,7 +140,7 @@ export class Client {
       const request = new ServerReflectionRequest();
       request.setFileContainingSymbol(symbol);
 
-      const grpcCall = this.grpcClient.serverReflectionInfo({});
+      const grpcCall = this.grpcClient.serverReflectionInfo(this.metadata);
       grpcCall.on('data', dataCallback);
       grpcCall.on('error', errorCallback);
       grpcCall.write(request);
@@ -162,7 +169,7 @@ export class Client {
       const request = new ServerReflectionRequest();
       request.setFileByFilename(symbol);
 
-      const grpcCall = this.grpcClient.serverReflectionInfo({});
+      const grpcCall = this.grpcClient.serverReflectionInfo(this.metadata);
       grpcCall.on('data', dataCallback);
       grpcCall.on('error', errorCallback);
       grpcCall.write(request);

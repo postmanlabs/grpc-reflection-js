@@ -4,8 +4,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import * as grpc from "@grpc/grpc-js";
-import {handleClientStreamingCall} from "@grpc/grpc-js/build/src/server-call";
+import * as grpc from "@postman/grpc-js";
 import * as reflection_pb from "./reflection_pb";
 
 interface IServerReflectionService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {

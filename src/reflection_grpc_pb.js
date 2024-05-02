@@ -18,7 +18,7 @@
 // Service exported by server reflection
 //
 'use strict';
-var grpc = require('@grpc/grpc-js');
+var grpc = require('@postman/grpc-js');
 var reflection_pb = require('./reflection_pb.js');
 
 function serialize_grpc_reflection_v1alpha_ServerReflectionRequest(arg) {

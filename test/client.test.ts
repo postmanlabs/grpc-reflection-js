@@ -1,5 +1,5 @@
 import {Client} from '../src/client';
-import {credentials} from '@grpc/grpc-js';
+import {credentials} from '@postman/grpc-js';
 // eslint-disable-next-line node/no-unpublished-import
 import {assert} from 'chai';
 import * as sinon from 'sinon';

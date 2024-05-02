@@ -1,4 +1,4 @@
-import {ChannelCredentials, Metadata, ServiceError} from '@grpc/grpc-js';
+import {ChannelCredentials, Metadata, ServiceError} from '@postman/grpc-js';
 import {getDescriptorRootFromDescriptorSet} from './descriptor';
 import * as services from './reflection_grpc_pb';
 import {

@@ -21,7 +21,7 @@ export function getDescriptorRoot(file_descriptor_protos) {
     const descriptor = Descriptor.FileDescriptorProto.decode(descriptorByte);
     set(descriptorSet, 'file[' + i + ']', descriptor);
   });
-  return protobuf.Root.fromDescriptor(descriptorSet);
+  return protobuf.Root.fromDescriptor(descriptorSet, {useMapField: true});
 }
 
 /**
@@ -31,5 +31,5 @@ export function getDescriptorRoot(file_descriptor_protos) {
  */
 // eslint-disable-next-line node/no-unsupported-features/es-syntax
 export function getDescriptorRootFromDescriptorSet(file_descriptor_set) {
-  return protobuf.Root.fromDescriptor(file_descriptor_set);
+  return protobuf.Root.fromDescriptor(file_descriptor_set, {useMapField: true});
 }

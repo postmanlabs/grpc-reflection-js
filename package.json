@@ -11,7 +11,7 @@
     "@postman/protobufjs": "^7.3.2-postman.2"
   },
   "devDependencies": {
-    "@postman/grpc-js": "1.10.8-postman.1",
+    "@postman/grpc-js": "1.10.8-postman.3",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^7.0.2",
     "@types/node": "^13.11.1",
@@ -58,6 +58,6 @@
   ],
   "types": "build/src/index.d.ts",
   "peerDependencies": {
-    "@postman/grpc-js": "1.9.14-postman.1"
+    "@postman/grpc-js": "1.10.8-postman.3"
   }
 }

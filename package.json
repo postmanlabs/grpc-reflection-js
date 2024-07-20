@@ -8,7 +8,7 @@
     "@types/lodash.set": "^4.3.6",
     "google-protobuf": "^3.12.2",
     "lodash.set": "^4.3.2",
-    "@postman/protobufjs": "^7.3.2-postman.2"
+    "@postman/protobufjs": "^7.3.2-postman.3"
   },
   "devDependencies": {
     "@postman/grpc-js": "1.10.8-postman.3",
@@ -58,6 +58,6 @@
   ],
   "types": "build/src/index.d.ts",
   "peerDependencies": {
-    "@postman/grpc-js": "1.10.8-postman.3"
+    "@postman/grpc-js": "1.11.0-postman.1"
   }
 }

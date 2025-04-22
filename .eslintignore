@@ -1,2 +1,4 @@
-build/src/reflection_*
-src/reflection_*
+build/src/generated/v1/reflection_*
+build/src/generated/v1alpha/reflection_*
+src/generated/v1/reflection_*
+src/generated/v1alpha/reflection_*

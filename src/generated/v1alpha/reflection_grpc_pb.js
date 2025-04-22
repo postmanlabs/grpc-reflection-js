@@ -18,36 +18,47 @@
 // Service exported by server reflection
 //
 'use strict';
-var grpc = require('@postman/grpc-js');
-var reflection_pb = require('./reflection_pb.js');
+const grpc = require('@postman/grpc-js');
+const reflection_pb = require('./reflection_pb.js');
 
 function serialize_grpc_reflection_v1alpha_ServerReflectionRequest(arg) {
   if (!(arg instanceof reflection_pb.ServerReflectionRequest)) {
-    throw new Error('Expected argument of type grpc.reflection.v1alpha.ServerReflectionRequest');
+    throw new Error(
+      'Expected argument of type grpc.reflection.v1alpha.ServerReflectionRequest'
+    );
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_grpc_reflection_v1alpha_ServerReflectionRequest(buffer_arg) {
-  return reflection_pb.ServerReflectionRequest.deserializeBinary(new Uint8Array(buffer_arg));
+function deserialize_grpc_reflection_v1alpha_ServerReflectionRequest(
+  buffer_arg
+) {
+  return reflection_pb.ServerReflectionRequest.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
 function serialize_grpc_reflection_v1alpha_ServerReflectionResponse(arg) {
   if (!(arg instanceof reflection_pb.ServerReflectionResponse)) {
-    throw new Error('Expected argument of type grpc.reflection.v1alpha.ServerReflectionResponse');
+    throw new Error(
+      'Expected argument of type grpc.reflection.v1alpha.ServerReflectionResponse'
+    );
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_grpc_reflection_v1alpha_ServerReflectionResponse(buffer_arg) {
-  return reflection_pb.ServerReflectionResponse.deserializeBinary(new Uint8Array(buffer_arg));
+function deserialize_grpc_reflection_v1alpha_ServerReflectionResponse(
+  buffer_arg
+) {
+  return reflection_pb.ServerReflectionResponse.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
-
-var ServerReflectionService = exports.ServerReflectionService = {
+const ServerReflectionService = (exports.ServerReflectionService = {
   // The reflection service is structured as a bidirectional stream, ensuring
-// all related requests go to a single server.
-serverReflectionInfo: {
+  // all related requests go to a single server.
+  serverReflectionInfo: {
     path: '/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo',
     requestStream: true,
     responseStream: true,
@@ -58,6 +69,9 @@ serverReflectionInfo: {
     responseSerialize: serialize_grpc_reflection_v1alpha_ServerReflectionResponse,
     responseDeserialize: deserialize_grpc_reflection_v1alpha_ServerReflectionResponse,
   },
-};
+});
 
-exports.ServerReflectionClient = grpc.makeGenericClientConstructor(ServerReflectionService);
+exports.ServerReflectionClient = grpc.makeGenericClientConstructor(
+  ServerReflectionService,
+  'ServerReflection'
+);

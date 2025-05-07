@@ -44,8 +44,11 @@
     "prepare": "yarn run compile",
     "pretest": "yarn run compile && yarn run fix",
     "posttest": "yarn run check",
-    "protoc": "grpc_tools_node_protoc --js_out=import_style=commonjs,binary:./src --grpc_out=grpc_js:./src --ts_out=grpc_js:./src --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts -I ./static/grpc/reflection/v1alpha reflection.proto",
-    "build": "yarn run compile && yarn run fix && yarn run check"
+    "protoc:v1alpha": "mkdir -p ./src/generated/v1alpha && grpc_tools_node_protoc --js_out=import_style=commonjs,binary:./src/generated/v1alpha --grpc_out=grpc_js:./src/generated/v1alpha --ts_out=grpc_js:./src/generated/v1alpha --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts -I ./static/grpc/reflection/v1alpha reflection.proto",
+    "protoc:v1": "mkdir -p ./src/generated/v1 && grpc_tools_node_protoc --js_out=import_style=commonjs,binary:./src/generated/v1 --grpc_out=grpc_js:./src/generated/v1 --ts_out=grpc_js:./src/generated/v1 --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts -I ./static/grpc/reflection/v1 reflection.proto",
+    "protoc": "yarn protoc:v1alpha && yarn protoc:v1",
+    "build": "yarn run compile && yarn run fix && yarn run check",
+    "prettier": "prettier --write src"
   },
   "files": [
     "build",

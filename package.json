@@ -8,10 +8,10 @@
     "@types/lodash.set": "^4.3.6",
     "google-protobuf": "^3.12.2",
     "lodash.set": "^4.3.2",
-    "@postman/protobufjs": "^7.3.2-postman.3"
+    "@postman/protobufjs": "^7.5.4-postman.1"
   },
   "devDependencies": {
-    "@postman/grpc-js": "1.10.8-postman.3",
+    "@postman/grpc-js": "1.14.0-postman.2",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^7.0.2",
     "@types/node": "^13.11.1",

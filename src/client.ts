@@ -17,15 +17,11 @@ export class Client {
   metadata: Metadata;
   grpcClient: services.IServerReflectionClient;
   private fileDescriptorCache: Map<string, IFileDescriptorProto> = new Map();
-  private reflectionOptions?: {
-    useExperimentalMapFieldDecoding?: boolean;
-  };
   constructor(
     url: string,
     credentials: ChannelCredentials,
     options?: object,
-    metadata?: Metadata,
-    reflectionOptions?: Client['reflectionOptions']
+    metadata?: Metadata
   ) {
     this.fileDescriptorCache = new Map();
     this.metadata = metadata || new Metadata();
@@ -34,7 +30,6 @@ export class Client {
       credentials,
       options
     );
-    this.reflectionOptions = reflectionOptions;
   }
 
   listServices(): Promise<string[]> {
@@ -92,10 +87,7 @@ export class Client {
     );
     const fileDescriptorSet = FileDescriptorSet.create();
     set(fileDescriptorSet, 'file', Array.from(fileDescriptorMap.values()));
-    return getDescriptorRootFromDescriptorSet(
-      fileDescriptorSet,
-      this.reflectionOptions?.useExperimentalMapFieldDecoding
-    );
+    return getDescriptorRootFromDescriptorSet(fileDescriptorSet);
   }
 
   private async resolveDescriptorRecursive(

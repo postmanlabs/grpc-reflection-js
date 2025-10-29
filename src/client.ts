@@ -20,20 +20,20 @@ import type {
   ServerReflectionResponse,
 } from './reflection_providers/v1alpha/reflection_pb';
 
-const supportedReflectionProtocols = [
-  {
-    protocol: 'v1alpha',
+const supportedReflectionProtocols = {
+  v1alpha: {
+    priority: 0,
     serviceName: 'grpc.reflection.v1alpha.ServerReflection',
     client: import('./reflection_providers/v1alpha/reflection_pb'),
     service: import('./reflection_providers/v1alpha/reflection_grpc_pb'),
   },
-  {
-    protocol: 'v1',
+  v1: {
+    priority: 1,
     serviceName: 'grpc.reflection.v1.ServerReflection',
     client: import('./reflection_providers/v1/reflection_pb'),
     service: import('./reflection_providers/v1/reflection_grpc_pb'),
   },
-];
+};
 
 export class Client {
   metadata: Metadata;
@@ -95,60 +95,100 @@ export class Client {
     });
   }
 
-  private async initializeReflectionClient() {
-    if (this.grpcClient || this.compatibleProtocol) {
-      return;
-    }
+  private async evaluateServerReflectionProtocol() {
+    const evaluationPromises = [];
 
     // Check protocol compatibility and initialize gRPC client based on that
-    for (const protocolConfig of supportedReflectionProtocols) {
-      const {
-        protocol,
-        service: servicePromise,
-        client: clientPromise,
-      } = protocolConfig;
+    for (const protocol of Object.keys(supportedReflectionProtocols)) {
+      type PromiseReturnType = {
+        successful: boolean;
+        priority: number;
+        effect?: () => void;
+        error?: ServiceError;
+      };
 
-      const [protocolService, protocolClient] = await Promise.all([
-        servicePromise,
-        clientPromise,
-      ]);
+      evaluationPromises.push(
+        // eslint-disable-next-line no-async-promise-executor
+        new Promise<PromiseReturnType>(async resolve => {
+          const protocolConfig =
+            supportedReflectionProtocols[
+              protocol as keyof typeof supportedReflectionProtocols
+            ];
+          const {
+            service: servicePromise,
+            client: clientPromise,
+          } = protocolConfig;
 
-      const grpcClientForProtocol = new protocolService.ServerReflectionClient(
-        this.url,
-        this.credentials,
-        this.clientOptions
+          const [protocolService, protocolClient] = await Promise.all([
+            servicePromise,
+            clientPromise,
+          ]);
+
+          const grpcClientForProtocol = new protocolService.ServerReflectionClient(
+            this.url,
+            this.credentials,
+            this.clientOptions
+          );
+
+          const request = new protocolClient.ServerReflectionRequest();
+
+          request.setListServices('*');
+
+          try {
+            const [reflectionResponse] = await this.sendReflectionRequest(
+              request,
+              grpcClientForProtocol
+            );
+
+            return resolve({
+              successful: true,
+              priority: protocolConfig.priority,
+              effect: () => {
+                this.grpcClient = grpcClientForProtocol;
+                this.compatibleProtocol = protocol;
+                this.CompatibleServerReflectionRequest =
+                  protocolClient.ServerReflectionRequest;
+                this.reflectionResponseCache = reflectionResponse;
+              },
+            });
+          } catch (error) {
+            return resolve({
+              successful: false,
+              priority: protocolConfig.priority,
+              error: error as ServiceError,
+            });
+          }
+        })
+      );
+    }
+
+    const evaluationResults = await Promise.all(evaluationPromises);
+
+    const [successfulReflectionByPriority] = evaluationResults
+      .filter(res => res.successful)
+      .sort((res1, res2) => res2.priority - res1.priority);
+
+    if (!successfulReflectionByPriority) {
+      const noCompatibleProtocolRrror = new Error(
+        'No compatible reflection protocol found.'
       );
 
-      const request = new protocolClient.ServerReflectionRequest();
+      const resultWithServiceError = evaluationResults.find(res => {
+        // Something is actually wrong with the gRPC service
+        return res.error && res.error.code !== GrpcStatus.UNIMPLEMENTED;
+      });
 
-      request.setListServices('*');
-
-      try {
-        const [reflectionResponse] = await this.sendReflectionRequest(
-          request,
-          grpcClientForProtocol
-        );
-
-        this.grpcClient = grpcClientForProtocol;
-        this.compatibleProtocol = protocol;
-        this.CompatibleServerReflectionRequest =
-          protocolClient.ServerReflectionRequest;
-        this.reflectionResponseCache = reflectionResponse;
-
-        break; // Exit loop on first successful protocol
-      } catch (error) {
-        if ((error as ServiceError).code !== GrpcStatus.UNIMPLEMENTED) {
-          // Something is wrong with the gRPC server itself
-          throw error;
-        }
-
-        continue; // Try next protocol
-      }
+      throw resultWithServiceError?.error || noCompatibleProtocolRrror;
     }
 
-    if (!this.grpcClient) {
-      throw new Error('No compatible reflection protocol found.');
-    }
+    // Set grpc client and other properties based on highest priority successful protocol
+    successfulReflectionByPriority.effect!();
+  }
+
+  private async initializeReflectionClient() {
+    if (this.grpcClient || this.compatibleProtocol) return;
+
+    await this.evaluateServerReflectionProtocol();
   }
 
   async listServices(): Promise<string[]> {

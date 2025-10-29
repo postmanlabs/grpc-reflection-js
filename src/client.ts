@@ -20,7 +20,7 @@ import type {
   ServerReflectionResponse,
 } from './reflection_providers/v1alpha/reflection_pb';
 
-const supportedReflectionProtocols = {
+const supportedReflectionAPIVersions = {
   v1alpha: {
     priority: 0,
     serviceName: 'grpc.reflection.v1alpha.ServerReflection',
@@ -98,9 +98,9 @@ export class Client {
   private async evaluateServerReflectionProtocol() {
     const evaluationPromises = [];
 
-    // Check protocol compatibility and initialize gRPC client based on that
-    for (const protocol of Object.keys(supportedReflectionProtocols)) {
-      type PromiseReturnType = {
+    // Check version compatibility and initialize gRPC client based on that
+    for (const version of Object.keys(supportedReflectionAPIVersions)) {
+      type ReflectionCheckPromiseReturnType = {
         successful: boolean;
         priority: number;
         effect?: () => void;
@@ -109,10 +109,10 @@ export class Client {
 
       evaluationPromises.push(
         // eslint-disable-next-line no-async-promise-executor
-        new Promise<PromiseReturnType>(async resolve => {
+        new Promise<ReflectionCheckPromiseReturnType>(async resolve => {
           const protocolConfig =
-            supportedReflectionProtocols[
-              protocol as keyof typeof supportedReflectionProtocols
+            supportedReflectionAPIVersions[
+              version as keyof typeof supportedReflectionAPIVersions
             ];
           const {
             service: servicePromise,
@@ -145,7 +145,7 @@ export class Client {
               priority: protocolConfig.priority,
               effect: () => {
                 this.grpcClient = grpcClientForProtocol;
-                this.compatibleProtocol = protocol;
+                this.compatibleProtocol = version;
                 this.CompatibleServerReflectionRequest =
                   protocolClient.ServerReflectionRequest;
                 this.reflectionResponseCache = reflectionResponse;
@@ -169,8 +169,9 @@ export class Client {
       .sort((res1, res2) => res2.priority - res1.priority);
 
     if (!successfulReflectionByPriority) {
+      // TODO: Do we error out here or just return empty results?
       const noCompatibleProtocolRrror = new Error(
-        'No compatible reflection protocol found.'
+        'No compatible reflection API found on server.'
       );
 
       const resultWithServiceError = evaluationResults.find(res => {
@@ -181,7 +182,7 @@ export class Client {
       throw resultWithServiceError?.error || noCompatibleProtocolRrror;
     }
 
-    // Set grpc client and other properties based on highest priority successful protocol
+    // Set grpc client and other properties based on highest priority successful version
     successfulReflectionByPriority.effect!();
   }
 

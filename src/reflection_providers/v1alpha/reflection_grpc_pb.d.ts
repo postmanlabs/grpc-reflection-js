@@ -23,7 +23,7 @@ interface IServerReflectionService_IServerReflectionInfo extends grpc.MethodDefi
 
 export const ServerReflectionService: IServerReflectionService;
 
-export interface IServerReflectionServer {
+export interface IServerReflectionServer extends grpc.UntypedServiceImplementation {
     serverReflectionInfo: grpc.handleBidiStreamingCall<reflection_pb.ServerReflectionRequest, reflection_pb.ServerReflectionResponse>;
 }
 

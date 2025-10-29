@@ -60,4 +60,4 @@ serverReflectionInfo: {
   },
 };
 
-exports.ServerReflectionClient = grpc.makeGenericClientConstructor(ServerReflectionService);
+exports.ServerReflectionClient = grpc.makeGenericClientConstructor(ServerReflectionService, 'ServerReflection');

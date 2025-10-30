@@ -1,0 +1,18 @@
+syntax = "proto3";
+package phone;
+
+import "contact.proto";
+
+service Messenger {
+  rpc Message(TextRequest) returns (TextResponse);
+}
+
+message TextRequest {
+  string id = 1;
+  string message = 2;
+  Contact contact = 3;
+}
+
+message TextResponse {
+  bool success = 1;
+}

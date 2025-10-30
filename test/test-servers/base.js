@@ -7,8 +7,8 @@ function createServer({apiVersion = 'v1'} = {}) {
   const fs = require('fs');
   const descriptor = require('google-protobuf/google/protobuf/descriptor_pb');
 
-  const PROTO_DIR = path.join(__dirname, '../fixtures', apiVersion);
-  const WIDGETS_PROTO_PATH = path.join(PROTO_DIR, 'widgets.proto');
+  const PROTO_DIR = path.join(__dirname, '../fixtures');
+  const PHONE_PROTO_PATH = path.join(PROTO_DIR, 'phone.proto');
   const REFLECTION_PROTO_PATH = path.join(
     __dirname,
     '../../static/grpc/reflection',
@@ -78,12 +78,11 @@ function createServer({apiVersion = 'v1'} = {}) {
       oneofs: true,
       includeDirs: [PROTO_DIR],
     };
-    const widgetsPackageDefinition = protoLoader.loadSync(
-      WIDGETS_PROTO_PATH,
+    const phonePackageDefinition = protoLoader.loadSync(
+      PHONE_PROTO_PATH,
       packageDefinitionOptions
     );
-    const widgetsProto = grpc.loadPackageDefinition(widgetsPackageDefinition)
-      .widgets.v1;
+    const phoneProto = grpc.loadPackageDefinition(phonePackageDefinition).phone;
 
     const reflectionPackageDefinition = protoLoader.loadSync(
       REFLECTION_PROTO_PATH,
@@ -94,10 +93,7 @@ function createServer({apiVersion = 'v1'} = {}) {
       reflectionPackageDefinition
     ).grpc.reflection[apiVersion];
 
-    const widgetServiceImpl = {
-      listWidgets: () => {},
-      createWidget: () => {},
-    };
+    const phoneServiceImplementation = {message: () => {}};
 
     function getDependenciesRecursive(
       filename,
@@ -253,8 +249,8 @@ function createServer({apiVersion = 'v1'} = {}) {
     const grpcServer = new grpc.Server();
 
     grpcServer.addService(
-      widgetsProto.WidgetService.service,
-      widgetServiceImpl
+      phoneProto.Messenger.service,
+      phoneServiceImplementation
     );
     grpcServer.addService(
       reflectionProto.ServerReflection.service,

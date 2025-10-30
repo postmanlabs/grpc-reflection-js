@@ -1,2 +1,2 @@
-build/src/reflection_*
+build/*
 src/reflection_*

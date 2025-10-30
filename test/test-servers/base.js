@@ -9,7 +9,12 @@ function createServer({apiVersion = 'v1'} = {}) {
 
   const PROTO_DIR = path.join(__dirname, '../fixtures', apiVersion);
   const WIDGETS_PROTO_PATH = path.join(PROTO_DIR, 'widgets.proto');
-  const REFLECTION_PROTO_PATH = path.join(PROTO_DIR, 'reflection.proto');
+  const REFLECTION_PROTO_PATH = path.join(
+    __dirname,
+    '../../static/grpc/reflection',
+    apiVersion,
+    'reflection.proto'
+  );
   const DESCRIPTOR_SET_PATH = path.join(
     PROTO_DIR,
     'server_descriptor.protoset'
@@ -28,9 +33,8 @@ function createServer({apiVersion = 'v1'} = {}) {
     if (server) return Promise.resolve({server, port: boundPort, shutdown});
 
     const descriptorSetBytes = fs.readFileSync(DESCRIPTOR_SET_PATH);
-    const fileDescriptorSet = descriptor.FileDescriptorSet.deserializeBinary(
-      descriptorSetBytes
-    );
+    const fileDescriptorSet =
+      descriptor.FileDescriptorSet.deserializeBinary(descriptorSetBytes);
     fileDescriptorProtos = fileDescriptorSet.getFileList();
 
     if (!fileDescriptorProtos || fileDescriptorProtos.length === 0) {
@@ -181,7 +185,8 @@ function createServer({apiVersion = 'v1'} = {}) {
                     proto.serializeBinary()
                   );
                 });
-                responseObject.file_descriptor_response = fileDescriptorResponseObj;
+                responseObject.file_descriptor_response =
+                  fileDescriptorResponseObj;
               }
             } else if (messageRequestCase === 'file_containing_symbol') {
               const symbol = request.file_containing_symbol;
@@ -215,7 +220,8 @@ function createServer({apiVersion = 'v1'} = {}) {
                     proto.serializeBinary()
                   );
                 });
-                responseObject.file_descriptor_response = fileDescriptorResponseObj;
+                responseObject.file_descriptor_response =
+                  fileDescriptorResponseObj;
               }
             } else {
               responseObject.error_response = {

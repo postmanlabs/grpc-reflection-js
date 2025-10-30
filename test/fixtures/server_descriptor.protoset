@@ -1,0 +1,14 @@
+
+¯
+test/fixtures/phone.protophone"5
+Contact
+name (	Rname
+number (	Rnumber"a
+TextRequest
+id (	Rid
+message (	Rmessage(
+contact (2.phone.ContactRcontact"(
+TextResponse
+success (Rsuccess2?
+	Messenger2
+Message.phone.TextRequest.phone.TextResponsebproto3

@@ -8,7 +8,7 @@ import {
   ListServiceResponse,
   ServiceResponse,
   FileDescriptorResponse,
-} from '../src/reflection_pb';
+} from '../src/reflection_providers/v1/reflection_pb';
 
 // eslint-disable-next-line no-undef
 describe('listServices', () => {

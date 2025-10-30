@@ -1,10 +1,10 @@
-import {ChannelCredentials, Metadata, ServiceError} from '@postman/grpc-js';
-import {getDescriptorRootFromDescriptorSet} from './descriptor';
-import * as services from './reflection_grpc_pb';
 import {
-  ServerReflectionRequest,
-  ServerReflectionResponse,
-} from './reflection_pb';
+  ChannelCredentials,
+  Metadata,
+  ServiceError,
+  status as GrpcStatus,
+} from '@postman/grpc-js';
+import {getDescriptorRootFromDescriptorSet} from './descriptor';
 import {Root} from '@postman/protobufjs';
 import {
   FileDescriptorSet,
@@ -13,26 +13,191 @@ import {
 } from '@postman/protobufjs/ext/descriptor';
 import set from 'lodash.set';
 
+// Static type definitions with common structures across all reflection providers
+import type {ServerReflectionClient} from './reflection_providers/v1alpha/reflection_grpc_pb';
+import type {
+  ServerReflectionRequest,
+  ServerReflectionResponse,
+} from './reflection_providers/v1alpha/reflection_pb';
+
+const supportedReflectionAPIVersions = {
+  v1alpha: {
+    priority: 0,
+    serviceName: 'grpc.reflection.v1alpha.ServerReflection',
+    client: import('./reflection_providers/v1alpha/reflection_pb'),
+    service: import('./reflection_providers/v1alpha/reflection_grpc_pb'),
+  },
+  v1: {
+    priority: 1,
+    serviceName: 'grpc.reflection.v1.ServerReflection',
+    client: import('./reflection_providers/v1/reflection_pb'),
+    service: import('./reflection_providers/v1/reflection_grpc_pb'),
+  },
+};
+
 export class Client {
   metadata: Metadata;
-  grpcClient: services.IServerReflectionClient;
   private fileDescriptorCache: Map<string, IFileDescriptorProto> = new Map();
+  private url: string;
+  private credentials: ChannelCredentials;
+  private clientOptions: object | undefined;
+
+  grpcClient: ServerReflectionClient | undefined;
+  compatibleReflectionVersion: string | undefined;
+  private reflectionResponseCache: ServerReflectionResponse | undefined;
+  private CompatibleServerReflectionRequest:
+    | (new (
+        ...args: ConstructorParameters<typeof ServerReflectionRequest>
+      ) => ServerReflectionRequest)
+    | undefined;
+
   constructor(
     url: string,
     credentials: ChannelCredentials,
     options?: object,
     metadata?: Metadata
   ) {
+    this.url = url;
+    this.credentials = credentials;
+    this.clientOptions = options;
     this.fileDescriptorCache = new Map();
     this.metadata = metadata || new Metadata();
-    this.grpcClient = new services.ServerReflectionClient(
-      url,
-      credentials,
-      options
-    );
   }
 
-  listServices(): Promise<string[]> {
+  private async sendReflectionRequest(
+    request: ServerReflectionRequest | ServerReflectionRequest[],
+    client?: ServerReflectionClient
+  ): Promise<ServerReflectionResponse[]> {
+    return new Promise((resolve, reject) => {
+      const result: ServerReflectionResponse[] = [];
+
+      const grpcCall = (client || this.grpcClient!).serverReflectionInfo(
+        this.metadata
+      );
+
+      grpcCall.on('data', (response: ServerReflectionResponse) => {
+        result.push(response);
+      });
+
+      grpcCall.on('error', (error: ServiceError) => {
+        reject(error);
+      });
+
+      grpcCall.on('end', () => resolve(result));
+
+      if (Array.isArray(request)) {
+        request.forEach(req => grpcCall.write(req));
+      } else {
+        grpcCall.write(request);
+      }
+
+      grpcCall.end();
+    });
+  }
+
+  private async evaluateSupportedServerReflectionProtocol() {
+    const evaluationPromises = [];
+
+    // Check version compatibility and initialize gRPC client based on that
+    for (const version of Object.keys(supportedReflectionAPIVersions)) {
+      type ReflectionCheckPromiseReturnType = {
+        successful: boolean;
+        priority: number;
+        effect?: () => void;
+        error?: ServiceError;
+      };
+
+      evaluationPromises.push(
+        // eslint-disable-next-line no-async-promise-executor
+        new Promise<ReflectionCheckPromiseReturnType>(async resolve => {
+          const protocolConfig =
+            supportedReflectionAPIVersions[
+              version as keyof typeof supportedReflectionAPIVersions
+            ];
+          const {
+            service: servicePromise,
+            client: clientPromise,
+          } = protocolConfig;
+
+          const [protocolService, protocolClient] = await Promise.all([
+            servicePromise,
+            clientPromise,
+          ]);
+
+          const grpcClientForProtocol = new protocolService.ServerReflectionClient(
+            this.url,
+            this.credentials,
+            this.clientOptions
+          );
+
+          const request = new protocolClient.ServerReflectionRequest();
+
+          request.setListServices('*');
+
+          try {
+            const [reflectionResponse] = await this.sendReflectionRequest(
+              request,
+              grpcClientForProtocol
+            );
+
+            return resolve({
+              successful: true,
+              priority: protocolConfig.priority,
+              effect: () => {
+                this.grpcClient = grpcClientForProtocol;
+                this.compatibleReflectionVersion = version;
+                this.CompatibleServerReflectionRequest =
+                  protocolClient.ServerReflectionRequest;
+                this.reflectionResponseCache = reflectionResponse;
+              },
+            });
+          } catch (error) {
+            return resolve({
+              successful: false,
+              priority: protocolConfig.priority,
+              error: error as ServiceError,
+            });
+          }
+        })
+      );
+    }
+
+    const evaluationResults = await Promise.all(evaluationPromises);
+
+    const [successfulReflectionByPriority] = evaluationResults
+      .filter(res => res.successful)
+      .sort((res1, res2) => res2.priority - res1.priority);
+
+    if (!successfulReflectionByPriority) {
+      const reflectionNotImplementedError = evaluationResults.find(res => {
+        return res.error && res.error.code === GrpcStatus.UNIMPLEMENTED;
+      });
+
+      const resultWithServiceError = evaluationResults.find(res => {
+        // Something is actually wrong with the gRPC service
+        return res.error && res.error.code !== GrpcStatus.UNIMPLEMENTED;
+      });
+
+      throw (
+        resultWithServiceError?.error ||
+        reflectionNotImplementedError?.error ||
+        new Error('No compatible reflection API found.')
+      );
+    }
+
+    // Set grpc client and other properties based on highest priority successful version
+    successfulReflectionByPriority.effect!();
+  }
+
+  async initialize() {
+    if (this.grpcClient || this.compatibleReflectionVersion) return;
+
+    await this.evaluateSupportedServerReflectionProtocol();
+  }
+
+  async listServices(): Promise<string[]> {
+    await this.initialize();
+
     return new Promise((resolve, reject) => {
       function dataCallback(response: ServerReflectionResponse) {
         if (response.hasListServicesResponse()) {
@@ -52,14 +217,16 @@ export class Client {
         reject(e);
       }
 
-      const request = new ServerReflectionRequest();
+      if (this.reflectionResponseCache) {
+        return dataCallback(this.reflectionResponseCache);
+      }
+
+      const request = new this.CompatibleServerReflectionRequest!();
       request.setListServices('*');
 
-      const grpcCall = this.grpcClient.serverReflectionInfo(this.metadata);
-      grpcCall.on('data', dataCallback);
-      grpcCall.on('error', errorCallback);
-      grpcCall.write(request);
-      grpcCall.end();
+      this.sendReflectionRequest(request)
+        .then(([response]) => dataCallback(response))
+        .catch(errorCallback);
     });
   }
 
@@ -120,9 +287,11 @@ export class Client {
     return fileDescriptorMap;
   }
 
-  private getFileContainingSymbol(
+  private async getFileContainingSymbol(
     symbol: string
   ): Promise<Array<IFileDescriptorProto> | undefined> {
+    await this.initialize();
+
     const fileDescriptorCache = this.fileDescriptorCache;
     return new Promise((resolve, reject) => {
       function dataCallback(response: ServerReflectionResponse) {
@@ -154,20 +323,20 @@ export class Client {
         reject(e);
       }
 
-      const request = new ServerReflectionRequest();
+      const request = new this.CompatibleServerReflectionRequest!();
       request.setFileContainingSymbol(symbol);
 
-      const grpcCall = this.grpcClient.serverReflectionInfo(this.metadata);
-      grpcCall.on('data', dataCallback);
-      grpcCall.on('error', errorCallback);
-      grpcCall.write(request);
-      grpcCall.end();
+      this.sendReflectionRequest(request)
+        .then(([response]) => dataCallback(response))
+        .catch(errorCallback);
     });
   }
 
-  private getFilesByFilenames(
+  private async getFilesByFilenames(
     symbols: string[]
   ): Promise<Array<IFileDescriptorProto> | undefined> {
+    await this.initialize();
+
     const result: Array<IFileDescriptorProto> = [];
     const fileDescriptorCache = this.fileDescriptorCache;
     const symbolsToFetch = symbols.filter(symbol => {
@@ -203,6 +372,13 @@ export class Client {
                 result.push(fileDescriptorProto);
               }
             });
+        } else if (response.hasErrorResponse()) {
+          const err = response.getErrorResponse();
+          reject(
+            new Error(
+              `Error: ${err?.getErrorCode()}: ${err?.getErrorMessage()}`
+            )
+          );
         } else {
           reject(Error());
         }
@@ -212,19 +388,17 @@ export class Client {
         reject(e);
       }
 
-      const grpcCall = this.grpcClient.serverReflectionInfo(this.metadata);
-      grpcCall.on('data', dataCallback);
-      grpcCall.on('error', errorCallback);
-      grpcCall.on('end', () => {
-        resolve(result);
+      const requests = symbolsToFetch.map(symbol => {
+        const request = new this.CompatibleServerReflectionRequest!();
+        return request.setFileByFilename(symbol);
       });
 
-      symbolsToFetch.forEach(symbol => {
-        const request = new ServerReflectionRequest();
-        grpcCall.write(request.setFileByFilename(symbol));
-      });
-
-      grpcCall.end();
+      this.sendReflectionRequest(requests)
+        .then(responses => {
+          for (const dataBit of responses) dataCallback(dataBit);
+          resolve(result);
+        })
+        .catch(errorCallback);
     });
   }
 }

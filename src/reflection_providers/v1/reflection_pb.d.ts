@@ -1,4 +1,4 @@
-// package: grpc.reflection.v1alpha
+// package: grpc.reflection.v1
 // file: reflection.proto
 
 /* tslint:disable */
@@ -10,36 +10,30 @@ export class ServerReflectionRequest extends jspb.Message {
     getHost(): string;
     setHost(value: string): ServerReflectionRequest;
 
-
     hasFileByFilename(): boolean;
     clearFileByFilename(): void;
     getFileByFilename(): string;
     setFileByFilename(value: string): ServerReflectionRequest;
-
 
     hasFileContainingSymbol(): boolean;
     clearFileContainingSymbol(): void;
     getFileContainingSymbol(): string;
     setFileContainingSymbol(value: string): ServerReflectionRequest;
 
-
     hasFileContainingExtension(): boolean;
     clearFileContainingExtension(): void;
     getFileContainingExtension(): ExtensionRequest | undefined;
     setFileContainingExtension(value?: ExtensionRequest): ServerReflectionRequest;
-
 
     hasAllExtensionNumbersOfType(): boolean;
     clearAllExtensionNumbersOfType(): void;
     getAllExtensionNumbersOfType(): string;
     setAllExtensionNumbersOfType(value: string): ServerReflectionRequest;
 
-
     hasListServices(): boolean;
     clearListServices(): void;
     getListServices(): string;
     setListServices(value: string): ServerReflectionRequest;
-
 
     getMessageRequestCase(): ServerReflectionRequest.MessageRequestCase;
 
@@ -65,17 +59,11 @@ export namespace ServerReflectionRequest {
 
     export enum MessageRequestCase {
         MESSAGE_REQUEST_NOT_SET = 0,
-    
-    FILE_BY_FILENAME = 3,
-
-    FILE_CONTAINING_SYMBOL = 4,
-
-    FILE_CONTAINING_EXTENSION = 5,
-
-    ALL_EXTENSION_NUMBERS_OF_TYPE = 6,
-
-    LIST_SERVICES = 7,
-
+        FILE_BY_FILENAME = 3,
+        FILE_CONTAINING_SYMBOL = 4,
+        FILE_CONTAINING_EXTENSION = 5,
+        ALL_EXTENSION_NUMBERS_OF_TYPE = 6,
+        LIST_SERVICES = 7,
     }
 
 }
@@ -83,10 +71,8 @@ export namespace ServerReflectionRequest {
 export class ExtensionRequest extends jspb.Message { 
     getContainingType(): string;
     setContainingType(value: string): ExtensionRequest;
-
     getExtensionNumber(): number;
     setExtensionNumber(value: number): ExtensionRequest;
-
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ExtensionRequest.AsObject;
@@ -109,36 +95,30 @@ export class ServerReflectionResponse extends jspb.Message {
     getValidHost(): string;
     setValidHost(value: string): ServerReflectionResponse;
 
-
     hasOriginalRequest(): boolean;
     clearOriginalRequest(): void;
     getOriginalRequest(): ServerReflectionRequest | undefined;
     setOriginalRequest(value?: ServerReflectionRequest): ServerReflectionResponse;
-
 
     hasFileDescriptorResponse(): boolean;
     clearFileDescriptorResponse(): void;
     getFileDescriptorResponse(): FileDescriptorResponse | undefined;
     setFileDescriptorResponse(value?: FileDescriptorResponse): ServerReflectionResponse;
 
-
     hasAllExtensionNumbersResponse(): boolean;
     clearAllExtensionNumbersResponse(): void;
     getAllExtensionNumbersResponse(): ExtensionNumberResponse | undefined;
     setAllExtensionNumbersResponse(value?: ExtensionNumberResponse): ServerReflectionResponse;
-
 
     hasListServicesResponse(): boolean;
     clearListServicesResponse(): void;
     getListServicesResponse(): ListServiceResponse | undefined;
     setListServicesResponse(value?: ListServiceResponse): ServerReflectionResponse;
 
-
     hasErrorResponse(): boolean;
     clearErrorResponse(): void;
     getErrorResponse(): ErrorResponse | undefined;
     setErrorResponse(value?: ErrorResponse): ServerReflectionResponse;
-
 
     getMessageResponseCase(): ServerReflectionResponse.MessageResponseCase;
 
@@ -164,15 +144,10 @@ export namespace ServerReflectionResponse {
 
     export enum MessageResponseCase {
         MESSAGE_RESPONSE_NOT_SET = 0,
-    
-    FILE_DESCRIPTOR_RESPONSE = 4,
-
-    ALL_EXTENSION_NUMBERS_RESPONSE = 5,
-
-    LIST_SERVICES_RESPONSE = 6,
-
-    ERROR_RESPONSE = 7,
-
+        FILE_DESCRIPTOR_RESPONSE = 4,
+        ALL_EXTENSION_NUMBERS_RESPONSE = 5,
+        LIST_SERVICES_RESPONSE = 6,
+        ERROR_RESPONSE = 7,
     }
 
 }
@@ -184,7 +159,6 @@ export class FileDescriptorResponse extends jspb.Message {
     getFileDescriptorProtoList_asB64(): Array<string>;
     setFileDescriptorProtoList(value: Array<Uint8Array | string>): FileDescriptorResponse;
     addFileDescriptorProto(value: Uint8Array | string, index?: number): Uint8Array | string;
-
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): FileDescriptorResponse.AsObject;
@@ -205,12 +179,10 @@ export namespace FileDescriptorResponse {
 export class ExtensionNumberResponse extends jspb.Message { 
     getBaseTypeName(): string;
     setBaseTypeName(value: string): ExtensionNumberResponse;
-
     clearExtensionNumberList(): void;
     getExtensionNumberList(): Array<number>;
     setExtensionNumberList(value: Array<number>): ExtensionNumberResponse;
     addExtensionNumber(value: number, index?: number): number;
-
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ExtensionNumberResponse.AsObject;
@@ -235,7 +207,6 @@ export class ListServiceResponse extends jspb.Message {
     setServiceList(value: Array<ServiceResponse>): ListServiceResponse;
     addService(value?: ServiceResponse, index?: number): ServiceResponse;
 
-
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ListServiceResponse.AsObject;
     static toObject(includeInstance: boolean, msg: ListServiceResponse): ListServiceResponse.AsObject;
@@ -256,7 +227,6 @@ export class ServiceResponse extends jspb.Message {
     getName(): string;
     setName(value: string): ServiceResponse;
 
-
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ServiceResponse.AsObject;
     static toObject(includeInstance: boolean, msg: ServiceResponse): ServiceResponse.AsObject;
@@ -276,10 +246,8 @@ export namespace ServiceResponse {
 export class ErrorResponse extends jspb.Message { 
     getErrorCode(): number;
     setErrorCode(value: number): ErrorResponse;
-
     getErrorMessage(): string;
     setErrorMessage(value: string): ErrorResponse;
-
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ErrorResponse.AsObject;

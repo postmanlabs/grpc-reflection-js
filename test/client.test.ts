@@ -67,10 +67,7 @@ describe('server reflection tests', () => {
         const mock = sinon.mock(reflectionClient.grpcClient);
         mock.expects('serverReflectionInfo').once().returns(grpcCall);
 
-        const expectedServices: string[] = [
-          'grpc.reflection.v1.ServerReflection',
-          'widgets.v1.WidgetService',
-        ];
+        const expectedServices: string[] = ['phone.Messenger'];
         assert.sameMembers(
           await reflectionClient.listServices(),
           expectedServices

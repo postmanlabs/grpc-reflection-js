@@ -43,8 +43,8 @@ export class Client {
   private clientOptions: object | undefined;
 
   grpcClient: ServerReflectionClient | undefined;
+  compatibleReflectionVersion: string | undefined;
   private reflectionResponseCache: ServerReflectionResponse | undefined;
-  private compatibleProtocol: string | undefined;
   private CompatibleServerReflectionRequest:
     | (new (
         ...args: ConstructorParameters<typeof ServerReflectionRequest>
@@ -142,7 +142,7 @@ export class Client {
               priority: protocolConfig.priority,
               effect: () => {
                 this.grpcClient = grpcClientForProtocol;
-                this.compatibleProtocol = version;
+                this.compatibleReflectionVersion = version;
                 this.CompatibleServerReflectionRequest =
                   protocolClient.ServerReflectionRequest;
                 this.reflectionResponseCache = reflectionResponse;
@@ -186,14 +186,14 @@ export class Client {
     successfulReflectionByPriority.effect!();
   }
 
-  private async initializeReflectionClient() {
-    if (this.grpcClient || this.compatibleProtocol) return;
+  async initialize() {
+    if (this.grpcClient || this.compatibleReflectionVersion) return;
 
     await this.evaluateSupportedServerReflectionProtocol();
   }
 
   async listServices(): Promise<string[]> {
-    await this.initializeReflectionClient();
+    await this.initialize();
 
     return new Promise((resolve, reject) => {
       function dataCallback(response: ServerReflectionResponse) {
@@ -287,7 +287,7 @@ export class Client {
   private async getFileContainingSymbol(
     symbol: string
   ): Promise<Array<IFileDescriptorProto> | undefined> {
-    await this.initializeReflectionClient();
+    await this.initialize();
 
     const fileDescriptorCache = this.fileDescriptorCache;
     return new Promise((resolve, reject) => {
@@ -332,7 +332,7 @@ export class Client {
   private async getFilesByFilenames(
     symbols: string[]
   ): Promise<Array<IFileDescriptorProto> | undefined> {
-    await this.initializeReflectionClient();
+    await this.initialize();
 
     const result: Array<IFileDescriptorProto> = [];
     const fileDescriptorCache = this.fileDescriptorCache;

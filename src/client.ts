@@ -24,14 +24,14 @@ const supportedReflectionAPIVersions = {
   v1alpha: {
     priority: 0,
     serviceName: 'grpc.reflection.v1alpha.ServerReflection',
-    client: './reflection_providers/v1alpha/reflection_pb',
-    service: './reflection_providers/v1alpha/reflection_grpc_pb',
+    client: import('./reflection_providers/v1alpha/reflection_pb'),
+    service: import('./reflection_providers/v1alpha/reflection_grpc_pb'),
   },
   v1: {
     priority: 1,
     serviceName: 'grpc.reflection.v1.ServerReflection',
-    client: './reflection_providers/v1/reflection_pb',
-    service: './reflection_providers/v1/reflection_grpc_pb',
+    client: import('./reflection_providers/v1/reflection_pb'),
+    service: import('./reflection_providers/v1/reflection_grpc_pb'),
   },
 };
 
@@ -114,11 +114,14 @@ export class Client {
             supportedReflectionAPIVersions[
               version as keyof typeof supportedReflectionAPIVersions
             ];
-          const {service: servicePath, client: clientPath} = protocolConfig;
+          const {
+            service: servicePromise,
+            client: clientPromise,
+          } = protocolConfig;
 
           const [protocolService, protocolClient] = await Promise.all([
-            import(servicePath),
-            import(clientPath),
+            servicePromise,
+            clientPromise,
           ]);
 
           const grpcClientForProtocol = new protocolService.ServerReflectionClient(

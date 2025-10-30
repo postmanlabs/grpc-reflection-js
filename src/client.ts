@@ -95,7 +95,7 @@ export class Client {
     });
   }
 
-  private async evaluateServerReflectionProtocol() {
+  private async evaluateSupportedServerReflectionProtocol() {
     const evaluationPromises = [];
 
     // Check version compatibility and initialize gRPC client based on that
@@ -169,17 +169,20 @@ export class Client {
       .sort((res1, res2) => res2.priority - res1.priority);
 
     if (!successfulReflectionByPriority) {
-      // TODO: Do we error out here or just return empty results?
-      const noCompatibleProtocolRrror = new Error(
-        'No compatible reflection API found on server.'
-      );
+      const reflectionNotImplementedError = evaluationResults.find(res => {
+        return res.error && res.error.code === GrpcStatus.UNIMPLEMENTED;
+      });
 
       const resultWithServiceError = evaluationResults.find(res => {
         // Something is actually wrong with the gRPC service
         return res.error && res.error.code !== GrpcStatus.UNIMPLEMENTED;
       });
 
-      throw resultWithServiceError?.error || noCompatibleProtocolRrror;
+      throw (
+        resultWithServiceError?.error ||
+        reflectionNotImplementedError?.error ||
+        new Error('No compatible reflection API found.')
+      );
     }
 
     // Set grpc client and other properties based on highest priority successful version
@@ -189,7 +192,7 @@ export class Client {
   private async initializeReflectionClient() {
     if (this.grpcClient || this.compatibleProtocol) return;
 
-    await this.evaluateServerReflectionProtocol();
+    await this.evaluateSupportedServerReflectionProtocol();
   }
 
   async listServices(): Promise<string[]> {

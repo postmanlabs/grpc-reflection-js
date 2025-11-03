@@ -57,6 +57,10 @@ export class Client {
     options?: object,
     metadata?: Metadata
   ) {
+    if (!url) {
+      throw new Error('Error: url is required for server reflection');
+    }
+
     this.url = url;
     this.credentials = credentials;
     this.clientOptions = options;
@@ -114,27 +118,27 @@ export class Client {
             supportedReflectionAPIVersions[
               version as keyof typeof supportedReflectionAPIVersions
             ];
-          const {
-            service: servicePromise,
-            client: clientPromise,
-          } = protocolConfig;
-
-          const [protocolService, protocolClient] = await Promise.all([
-            servicePromise,
-            clientPromise,
-          ]);
-
-          const grpcClientForProtocol = new protocolService.ServerReflectionClient(
-            this.url,
-            this.credentials,
-            this.clientOptions
-          );
-
-          const request = new protocolClient.ServerReflectionRequest();
-
-          request.setListServices('*');
 
           try {
+            const {service: servicePromise, client: clientPromise} =
+              protocolConfig;
+
+            const [protocolService, protocolClient] = await Promise.all([
+              servicePromise,
+              clientPromise,
+            ]);
+
+            const grpcClientForProtocol =
+              new protocolService.ServerReflectionClient(
+                this.url,
+                this.credentials,
+                this.clientOptions
+              );
+
+            const request = new protocolClient.ServerReflectionRequest();
+
+            request.setListServices('*');
+
             const [reflectionResponse] = await this.sendReflectionRequest(
               request,
               grpcClientForProtocol
@@ -174,7 +178,7 @@ export class Client {
       });
 
       const resultWithServiceError = evaluationResults.find(res => {
-        // Something is actually wrong with the gRPC service
+        // Something is actually wrong with the gRPC service or client
         return res.error && res.error.code !== GrpcStatus.UNIMPLEMENTED;
       });
 

@@ -61,6 +61,12 @@ export class Client {
       throw new Error('Error: url is required for server reflection');
     }
 
+    if (!credentials) {
+      throw new Error(
+        'Error: credentials parameter is required for server reflection'
+      );
+    }
+
     this.url = url;
     this.credentials = credentials;
     this.clientOptions = options;

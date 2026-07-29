@@ -14,8 +14,12 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '22.14.0'
+        registry-url: 'https://registry.npmjs.org'
     - name: Install packages
       run: npm install
+      env:
+        # read auth so the private @postman/* deps resolve (setup-node writes the .npmrc)
+        NODE_AUTH_TOKEN: ${{ secrets.POSTMAN_NPM_TOKEN }}
     - name: Run test
       run: npm test
     - name: Coverage report

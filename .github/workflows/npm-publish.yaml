@@ -19,7 +19,7 @@ jobs:
         node-version: 22.14.0
         registry-url: 'https://registry.npmjs.org'
     - name: Upgrade npm for OIDC support
-      run: npm install -g npm@latest # trusted publishing needs npm >= 11.5.1
+      run: npm install -g npm@11.5.1 # trusted publishing needs npm >= 11.5.1
     - run: npm install
     - run: npm run build
     - run: npm publish # authenticates via OIDC, no token needed

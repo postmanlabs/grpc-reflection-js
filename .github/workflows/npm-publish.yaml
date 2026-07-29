@@ -1,25 +1,32 @@
+# npm Trusted Publisher is bound to this repo + this workflow FILENAME
+# (postmanlabs/grpc-reflection-js -> npm-publish.yaml, permission: npm publish).
+# Do NOT rename this file, or the OIDC claim stops matching and trusted publishing breaks.
 name: NPM Publish
+
 on:
   push:
-    branches:
-      - master # Change this to your default branch
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g. v0.1.2-postman.11)'
+        required: true
+        type: string
+
 permissions:
-  id-token: write # Required for npm OIDC trusted publishing
   contents: read
+  id-token: write # required for npm OIDC trusted publishing
+
 jobs:
-  npm-publish:
-    name: npm-publish
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22.14.0
-        registry-url: 'https://registry.npmjs.org'
-    - name: Upgrade npm for OIDC support
-      run: npm install -g npm@11.5.1 # trusted publishing needs npm >= 11.5.1
-    - run: npm install
-    - run: npm run build
-    - run: npm publish # authenticates via OIDC, no token needed
+  call-npm-release:
+    # Canonical, security-controlled publish flow. Installs deps authenticated
+    # with POSTMAN_NPM_TOKEN (so the private @postman/* deps resolve), then
+    # publishes via OIDC trusted publishing (no token on the publish step).
+    uses: postmanlabs/gh-security-scan-workflow/.github/workflows/security-npm-publish.yml@main
+    with:
+      tag: ${{ inputs.tag || github.ref_name }}
+      node_version: '22'
+      skip_tests: true
+    secrets:
+      POSTMAN_NPM_TOKEN: ${{ secrets.POSTMAN_NPM_TOKEN }}

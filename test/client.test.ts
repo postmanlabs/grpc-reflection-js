@@ -4,11 +4,23 @@ import {credentials} from '@postman/grpc-js';
 import {assert} from 'chai';
 import * as sinon from 'sinon';
 import {
+  ServerReflectionRequest,
   ServerReflectionResponse,
   ListServiceResponse,
   ServiceResponse,
   FileDescriptorResponse,
 } from '../src/reflection_providers/v1/reflection_pb';
+
+// `Client` resolves its grpc client and request constructor asynchronously
+// (based on the server's supported reflection API version), so tests prime
+// those fields directly rather than negotiating against a real server.
+function stubReflectionClient(client: Client) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (client as any).grpcClient = {serverReflectionInfo: () => {}};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (client as any).CompatibleServerReflectionRequest = ServerReflectionRequest;
+  return sinon.mock(client.grpcClient);
+}
 
 // eslint-disable-next-line no-undef
 describe('listServices', () => {
@@ -22,6 +34,10 @@ describe('listServices', () => {
     const grpcCall = {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       on: function (_event: string, listener: (...args: any[]) => void) {
+        if (_event === 'error') {
+          return;
+        }
+
         const res = new ServerReflectionResponse();
 
         const service1 = new ServiceResponse();
@@ -40,7 +56,7 @@ describe('listServices', () => {
       end: function () {},
     };
 
-    const mock = sinon.mock(reflectionClient.grpcClient);
+    const mock = stubReflectionClient(reflectionClient);
     mock.expects('serverReflectionInfo').once().returns(grpcCall);
 
     const expectedServices: string[] = [
@@ -100,7 +116,7 @@ describe('fileContainingSymbol', () => {
       end: function () {},
     };
 
-    const mock = sinon.mock(reflectionClient.grpcClient);
+    const mock = stubReflectionClient(reflectionClient);
     mock.expects('serverReflectionInfo').once().returns(grpcCallPhone);
     mock.expects('serverReflectionInfo').once().returns(grpcCallContact);
     const root = await reflectionClient.fileContainingSymbol('phone.Messenger');
@@ -136,7 +152,7 @@ describe('fileByFilename', () => {
       end: function () {},
     };
 
-    const mock = sinon.mock(reflectionClient.grpcClient);
+    const mock = stubReflectionClient(reflectionClient);
     mock.expects('serverReflectionInfo').once().returns(grpcCallContact);
     const root = await reflectionClient.fileByFilename('contact.proto');
     assert.deepEqual(root.files, ['contact.proto']);

@@ -1,6 +1,5 @@
 const protobuf = require('@postman/protobufjs');
 const Descriptor = require('@postman/protobufjs/ext/descriptor');
-const set = require('lodash.set');
 
 /**
  * @typedef {import('@postman/protobufjs').Root} Root
@@ -19,7 +18,7 @@ export function getDescriptorRoot(file_descriptor_protos) {
 
   file_descriptor_protos.forEach((descriptorByte, i) => {
     const descriptor = Descriptor.FileDescriptorProto.decode(descriptorByte);
-    set(descriptorSet, 'file[' + i + ']', descriptor);
+    descriptorSet.file[i] = descriptor;
   });
   return protobuf.Root.fromDescriptor(descriptorSet);
 }

@@ -1,6 +1,6 @@
 {
   "name": "@postman/grpc-reflection-js",
-  "version": "0.1.2-postman.7",
+  "version": "0.1.2-postman.8",
   "main": "build/src/index.js",
   "license": "MIT",
   "dependencies": {

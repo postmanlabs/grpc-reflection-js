@@ -3,7 +3,7 @@ const Descriptor = require('@postman/protobufjs/ext/descriptor');
 
 /**
  * @typedef {import('@postman/protobufjs').Root} Root
- * @typedef {import('@postman/protobufjs').Message} Message
+ * @typedef {import('@postman/protobufjs').Message<Record<string, unknown>>} Message
  */
 
 /**

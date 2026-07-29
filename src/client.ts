@@ -1,5 +1,6 @@
 import {
   ChannelCredentials,
+  ClientOptions,
   Metadata,
   ServiceError,
   status as GrpcStatus,
@@ -40,7 +41,7 @@ export class Client {
   private fileDescriptorCache: Map<string, IFileDescriptorProto> = new Map();
   private url: string;
   private credentials: ChannelCredentials;
-  private clientOptions: object | undefined;
+  private clientOptions: ClientOptions | undefined;
 
   grpcClient: ServerReflectionClient | undefined;
   compatibleReflectionVersion: string | undefined;
@@ -54,7 +55,7 @@ export class Client {
   constructor(
     url: string,
     credentials: ChannelCredentials,
-    options?: object,
+    options?: ClientOptions,
     metadata?: Metadata
   ) {
     this.url = url;
@@ -252,7 +253,9 @@ export class Client {
     const fileDescriptorMap = await this.resolveDescriptorRecursive(
       fileDescriptorProtos
     );
-    const fileDescriptorSet = FileDescriptorSet.create() as Message<{}> &
+    const fileDescriptorSet = FileDescriptorSet.create() as Message<
+      Record<string, unknown>
+    > &
       IFileDescriptorSet;
     fileDescriptorSet.file = Array.from(fileDescriptorMap.values());
     return getDescriptorRootFromDescriptorSet(fileDescriptorSet);

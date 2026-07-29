@@ -27,7 +27,9 @@ describe('getDescriptorRoot', () => {
 describe('getDescriptorRootFromDescriptorSet', () => {
   // eslint-disable-next-line no-undef
   it('should return Root', () => {
-    const descriptorSet = FileDescriptorSet.create() as Message<{}> &
+    const descriptorSet = FileDescriptorSet.create() as Message<
+      Record<string, unknown>
+    > &
       IFileDescriptorSet;
     descriptorSet.file[0] = (FileDescriptorProto.decode(
       protoBytes

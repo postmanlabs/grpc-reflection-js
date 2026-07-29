@@ -21,5 +21,9 @@ jobs:
     - name: Upgrade npm for OIDC support
       run: npm install -g npm@11.5.1 # trusted publishing needs npm >= 11.5.1
     - run: npm install
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.POSTMAN_NPM_TOKEN }} # read auth for private @postman/* deps
     - run: npm run build
-    - run: npm publish # authenticates via OIDC, no token needed
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.POSTMAN_NPM_TOKEN }}
+    - run: npm publish # OIDC trusted publishing — no token on this step (token would bypass OIDC)

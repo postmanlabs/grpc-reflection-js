@@ -26,4 +26,4 @@ jobs:
     - run: npm run build
       env:
         NODE_AUTH_TOKEN: ${{ secrets.POSTMAN_NPM_TOKEN }}
-    - run: npm publish # OIDC trusted publishing — no token on this step (token would bypass OIDC)
+    - run: npm publish --tag latest # OIDC trusted publishing — no token on this step (token would bypass OIDC)

@@ -5,13 +5,13 @@ import {
   status as GrpcStatus,
 } from '@postman/grpc-js';
 import {getDescriptorRootFromDescriptorSet} from './descriptor';
-import {Root} from '@postman/protobufjs';
+import {Message, Root} from '@postman/protobufjs';
 import {
   FileDescriptorSet,
+  IFileDescriptorSet,
   IFileDescriptorProto,
   FileDescriptorProto,
 } from '@postman/protobufjs/ext/descriptor';
-import set from 'lodash.set';
 
 // Static type definitions with common structures across all reflection providers
 import type {ServerReflectionClient} from './reflection_providers/v1alpha/reflection_grpc_pb';
@@ -252,8 +252,9 @@ export class Client {
     const fileDescriptorMap = await this.resolveDescriptorRecursive(
       fileDescriptorProtos
     );
-    const fileDescriptorSet = FileDescriptorSet.create();
-    set(fileDescriptorSet, 'file', Array.from(fileDescriptorMap.values()));
+    const fileDescriptorSet = FileDescriptorSet.create() as Message<{}> &
+      IFileDescriptorSet;
+    fileDescriptorSet.file = Array.from(fileDescriptorMap.values());
     return getDescriptorRootFromDescriptorSet(fileDescriptorSet);
   }
 

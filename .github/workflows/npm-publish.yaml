@@ -3,19 +3,23 @@ on:
   push:
     branches:
       - master # Change this to your default branch
+permissions:
+  id-token: write # Required for npm OIDC trusted publishing
+  contents: read
 jobs:
   npm-publish:
     name: npm-publish
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Set up Node.js
-      uses: actions/setup-node@v2-beta
+      uses: actions/setup-node@v4
       with:
-        node-version: 12.0.0
+        node-version: 22.14.0
+        registry-url: 'https://registry.npmjs.org'
+    - name: Upgrade npm for OIDC support
+      run: npm install -g npm@11.5.1 # trusted publishing needs npm >= 11.5.1
     - run: npm install
     - run: npm run build
-    - uses: JS-DevTools/npm-publish@v1
-      with:
-        token: ${{ secrets.NPM_AUTH_TOKEN }}
+    - run: npm publish # authenticates via OIDC, no token needed
